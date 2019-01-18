@@ -78,60 +78,15 @@ def cv_get_slice(y, rate=0.052):
     return fold_size
 
 
-def cv_get_partition_orig(y, size_fold, index):
-    """
-    :param y: [ndarray] . y = load_data(...)
-    :param size_fold: size of training set
-    :param index : index after shuffle , refers to old index (Y0 index)
-    :return: same as get_split()
-        y_train all zeros.
-        for counter in range(cv_fold):
-            y_train[shuffled_index] = y[shuffled_index]
-
-    """
-    # versione1
-    # devo mettere in idx-TRAIN i nuovi valori non semplicemnte i range(140)
-    idx_train = range(size_fold)
-    idx_val = range(size_fold, int(round(len(y) - size_fold) / 2))
-    idx_test = range(int(round(len(y) - size_fold) / 2), len(y))
-    y_train = np.zeros(y.shape, dtype=np.int32)
-    y_val = np.zeros(y.shape, dtype=np.int32)
-    y_test = np.zeros(y.shape, dtype=np.int32)
-
-    # for ii in range(5):
-    #     print("shuffle value = {}\t new_i = {}\t old_i = {}".format(y[ii], ii, int(index[ii])))
-
-    for i in idx_train:
-        y_train[int(index[i])] = y[int(index[i])]  # look version
-        """
-        versione 2 faccio entrare la y_ (shuffled_Y) e poi uso idx train per la parte destra mentre index[i] per la sx
-
-        for i in idx_train:
-            y_train[int(index[i])] = y_shuffled[i] 
-        """
-    for j in idx_val:
-        y_val[int(index[j])] = y[int(index[j])]
-    for k in idx_test:
-        y_test[int(index[k])] = y[int(index[k])]
-    mask = np.zeros(y.shape[0])
-    for l in idx_train:
-        mask[int(index[l])] = 1
-    print(idx_train)
-    print("Y TRAINING : shape = {} ".format(y_train.shape))
-    print("Y VALIDATION : shape = {} ".format(y_val.shape))
-    return y_train, y_val, y_test, idx_train, idx_val, idx_test, np.array(mask, dtype=np.bool)
-
-
 def cv_get_partition(y, size_fold, index):
     """
-    :param y: [ndarray] . y = load_data(...)
+    :param y: [ndarray] . shuffled_Y
     :param size_fold: size of training set
     :param index : index after shuffle , refers to old index (Y0 index)
     :return: same as get_split()
         y_train all zeros.
         for counter in range(cv_fold):
-            y_train[shuffled_index] = y[shuffled_index]
-
+            y_train[shuffled_index] = y[counter]
     """
     # versione1
     idx_train = range(size_fold)
@@ -147,7 +102,7 @@ def cv_get_partition(y, size_fold, index):
         versione 2 faccio entrare la y_ (shuffled_Y) e poi uso idx train per la parte destra mentre index[i] per la sx
 
         for i in idx_train:
-            y_train[int(index[i])] = y_shuffled[i] 
+            y_train[int(index[i])] = y_shuffled[i]
         """
     for j in idx_val:
         y_val[int(index[j])] = y[j]
@@ -161,11 +116,11 @@ def cv_get_partition(y, size_fold, index):
     list_y_tr = []
     list_y_v = []
     list_y_te = []
-    for i in range(len(idx_train)):
+    for i in idx_train:
         list_y_tr.append(int(index[i]))
-    for i in range(len(idx_val)):
+    for i in idx_val:
         list_y_v.append(int(index[i]))
-    for i in range(len(idx_test)):
+    for i in idx_test:
         list_y_te.append(int(index[i]))
 
 
@@ -197,9 +152,9 @@ print("value size fetta = {}, total fette = {}".format(cv_size, cake))
 result = []
 for k in range(cake):
     print("\n\nfold {} in {}".format(k, cake))
+    #versione shuffle decommentare sotto
     y_train, y_val, y_test, idx_train, idx_val, idx_test, train_mask = cv_get_partition(y_, cv_size, index_)
-
-    X /= X.sum(1).reshape(-1, 1)   #non funziona questo reshape nella loro versione. normalizza e basta.
+    X /= X.sum(1).reshape(-1, 1)
 
     if FILTER == 'localpool':
         """ Local pooling filters (see 'renormalization trick' in Kipf & Welling, arXiv 2016) """
@@ -281,8 +236,8 @@ for k in range(cake):
 
     # Next slice of cake
     idx_train = range(cv_size)
-    idx_val = range(cv_size, int(round(len(y) - cv_size)/2))
-    idx_test = range(int(round(len(y)-cv_size)/2), len(y))
+    idx_val = range(cv_size, int(round(len(y) - cv_size) / 2))
+    idx_test = range(int(round(len(y) - cv_size) / 2), len(y))
     next_k = list(idx_val) + list(idx_test) + list(idx_train)
 
     # Update y and indices for next iteration with new slice of cake
@@ -295,5 +250,3 @@ for i in result:
     avg += i
 avg = avg/len(result)
 print("average = {}".format(avg))
-
-
