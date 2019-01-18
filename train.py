@@ -36,59 +36,65 @@ def readCoraGraph(nodesPath="data/cora/cora.content", edgesPath="data/cora/cora.
 def cv_my_shuffle(x, y):
     """
     format new matrix  = X[],Y[], shuffled_index
+
+    Descrizione metodo: il metodo prende gli input da load data, concatena (nel seguente ordine)la matrice
+    delle features X e la matrice delle Labels Y per poi aggiungere l'ultima colonna che rappresenta l'enumerazione deli nodi.
+    La matrice concatenation_mat viene shufflata secondo le righe.
+    Successivamente vengono recuperate le nuove matrici X e y e gli indici shufflati dei nodi.
+    Per quanto riguarda la X che viene restituita non verrà usata all'interno del train.py in quanto devo mantenere le corrispondenze
+    con la matrice di adiacenza A che viene calcolata all'inizio con il metodo load_data.
     :param y: label node, ndarray
     :param x: feature node, numpy.matrix
     :return: shuffle new concatenate matrix XY
     """
-    print("\n\nShuffle function :")
-    print("\tx =  type{}, shape {}, element type{}".format(type(x), x.shape, type(x[0][0])))
-    print("\ty =  type{}, shape {}, type element{}".format(type(y), y.shape, type(y[0][0])))
-
     concatenation_mat = np.concatenate((x, y), axis=1)
     index = np.arange(len(y)).reshape((-1, 1))
     concatenation_mat = np.append(concatenation_mat, index, axis=1)   # index Y before shuffle
     np.random.shuffle(concatenation_mat)    #row shuffle
-    print("\tShape matrix X_Y_I_ =  type{}, shape {}\n\n".format(type(concatenation_mat), concatenation_mat.shape))
-
     X = concatenation_mat[:, :1433]
     y = concatenation_mat[:, 1433:1440]
     shuffle_index = concatenation_mat[:, -1]
     y_shuffled = np.zeros(y.shape, dtype=np.int32)  # build numpy.ndarray
     for counter, value in enumerate(y):
         y_shuffled[counter] = value
-    print("New matrix info :")
-    print("\tnew y : {} type = {}".format(y_shuffled.shape, type(y_shuffled)))
-    print("\tnew X : {} type = {}".format(x.shape, type(x)))
-    print("\tnew I : {}".format(shuffle_index.shape))
-
+    print("\n\nShuffle function... [DONE]")
     return X, y_shuffled, shuffle_index
-
 
 
 def cv_get_slice(y, rate=0.052):
     """
-    Implementation of cross validation on kegra model
+    Descrizione metodo: ritorna il numero intero arrotondato della dimensione del set di training del modello.
     :param y: label of graph
     :param rate: label rate of graph
-    :return: size fold for cross validation
+    :return: int , size of y_training
     """
-    print("Cross-validation GET FOLD with rate [{}] on {} nodes".format(rate, len(y)))
+    print("Cross-validation GET K with rate [{}] on {} nodes".format(rate, len(y)))
     fold_size = int(round(len(y)*rate))
-    print("\tFold size (training) = {}\n\n".format(fold_size))
+    print("Fold size (training) = {}, label_rate = {}... [DONE]".format(fold_size, rate))
     return fold_size
 
 
 def cv_get_partition(y, size_fold, index):
     """
+    Descrizione metodo: Metodo per restituire le partizioni di y_train, y_val, y_test.
+    La politica adottata è stata:
+    1 - la dimensione del train è stata calcolata attraverso il metodo cv_get_slice con la possibilita di usare label_rate
+        per fornire la dimensione in percentuale.
+    2 - la dimensione di validation e test sono uguali e dividono il dataset meno la parte di training in 2 parti uguali
+    3 - Vengono popolate le matrici secondo il vecchio ordinamento di Y0 (ovvero y iniziale ) in modo da preservare le relazioni
+    con la X e la matrice di Adiacenza A.
+    4 - IMPORTANTE - notare che il metodo implementato da kegra "EVALUATE_PREDS" impone che in idx_train, idx_val, idx_test
+        escano delle liste (o range) in cui sono effettivamente presenti gli indici che siamo andati a popolare nelle matrici di riferimento.
+        Nel momento che non usiamo pià una distribuzione di label come da loro proposto, devo andare ad aggiornare le suddette matrici
+        con i nuovi indici associati dopo la shufflata.     list_y_tr , list_y_v, list_y_te .
+        Sono le liste di dimensione uguale a quante label ho messo nei vari Y_* con gli indici shufflati.
+        Anche la mask viene modificata in base agli indici shufflati.
+
     :param y: [ndarray] . shuffled_Y
     :param size_fold: size of training set
     :param index : index after shuffle , refers to old index (Y0 index)
-    :return: same as get_split()
-        y_train all zeros.
-        for counter in range(cv_fold):
-            y_train[shuffled_index] = y[counter]
+    :return: same as get_split with updated index and value.
     """
-    # versione1
     idx_train = range(size_fold)
     idx_val = range(size_fold, int(round(len(y)-size_fold)/2))
     idx_test = range(int(round(len(y)-size_fold)/2), len(y))
@@ -97,13 +103,7 @@ def cv_get_partition(y, size_fold, index):
     y_test = np.zeros(y.shape, dtype=np.int32)
 
     for i in idx_train:
-        y_train[int(index[i])] = y[i]   # look version 2
-        """
-        versione 2 faccio entrare la y_ (shuffled_Y) e poi uso idx train per la parte destra mentre index[i] per la sx
-
-        for i in idx_train:
-            y_train[int(index[i])] = y_shuffled[i]
-        """
+        y_train[int(index[i])] = y[i]
     for j in idx_val:
         y_val[int(index[j])] = y[j]
     for k in idx_test:
@@ -122,13 +122,8 @@ def cv_get_partition(y, size_fold, index):
         list_y_v.append(int(index[i]))
     for i in idx_test:
         list_y_te.append(int(index[i]))
-
-
-    print("Y TRAINING : shape = {} ".format(y_train.shape))
-    print("Y VALIDATION : shape = {} ".format(y_val.shape))
-
+    print("\tGet_partition... [DONE]")
     return y_train, y_val, y_test, list_y_tr, list_y_v, list_y_te, np.array(mask, dtype=np.bool)
-
 
 
 # Define parameters
@@ -138,32 +133,31 @@ MAX_DEGREE = 2  # maximum polynomial degree
 SYM_NORM = True  # symmetric (True) vs. left-only (False) normalization
 NB_EPOCH = 200
 PATIENCE = 10  # early stopping patience
+#MY MACRO
+PATH = "data/"+DATASET+'/'
+RATE = 0.052
 
-
-X, A, y = load_data(dataset=DATASET)
+X, A, y = load_data(PATH, DATASET)
 
 # Cross-validation on single RUN
 X_, y_, index_ = cv_my_shuffle(X, y)
 
 
-cv_size = cv_get_slice(y_)
-cake = round(len(y_)/cv_size)    #restituisce 19 fette 19*141 = 2679
-print("value size fetta = {}, total fette = {}".format(cv_size, cake))
+cv_size = cv_get_slice(y_, rate=RATE)
+K_TOT = round(len(y_)/cv_size)    #K_tot of cross validation
 result = []
-for k in range(cake):
-    print("\n\nfold {} in {}".format(k, cake))
-    #versione shuffle decommentare sotto
+for k in range(K_TOT):
+    print("\n\n###  CROSS VALIDATION    k = {} in {} ###".format(k, K_TOT))
     y_train, y_val, y_test, idx_train, idx_val, idx_test, train_mask = cv_get_partition(y_, cv_size, index_)
     X /= X.sum(1).reshape(-1, 1)
 
     if FILTER == 'localpool':
         """ Local pooling filters (see 'renormalization trick' in Kipf & Welling, arXiv 2016) """
-        print('Using local pooling filters...')
+        print('\tUsing local pooling filters...')
         A_ = preprocess_adj(A, SYM_NORM)
         support = 1
         graph = [X, A_]
         G = [Input(shape=(None, None), batch_shape=(None, None), sparse=True)]
-        print(G)
     elif FILTER == 'chebyshev':
         """ Chebyshev polynomial basis filters (Defferard et al., NIPS 2016)  """
         print('Using Chebyshev polynomial basis filters...')
@@ -234,13 +228,13 @@ for k in range(cake):
 
     result.append(test_acc[0])
 
-    # Next slice of cake
+    # Next slice of K_TOT
     idx_train = range(cv_size)
     idx_val = range(cv_size, int(round(len(y) - cv_size) / 2))
     idx_test = range(int(round(len(y) - cv_size) / 2), len(y))
     next_k = list(idx_val) + list(idx_test) + list(idx_train)
 
-    # Update y and indices for next iteration with new slice of cake
+    # Update y and indices for next iteration with new slice of K_TOT
     y_ = y_[next_k]
     index_ = index_[next_k]
 
