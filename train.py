@@ -11,9 +11,6 @@ from kegra.utils import *
 import networkx as nx
 import time
 
-from numpy.core._multiarray_umath import ndarray
-from scipy import sparse
-
 
 
 def readCoraGraph(nodesPath="data/cora/cora.content", edgesPath="data/cora/cora.cites"):
