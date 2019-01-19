@@ -1,0 +1,153 @@
+Caratteristiche matrici:
+x =  type<class 'numpy.matrix'>, shape (2708, 1433), element type<class 'numpy.matrix'>
+y =  type<class 'numpy.ndarray'>, shape (2708, 7), type element<class 'numpy.int32'>
+
+
+
+##### info graph
+      [matrix([[0., 0., 0., ..., 0., 0., 0.],
+                 [0., 0., 0., ..., 0., 0., 0.],
+                 [0., 0., 0., ..., 0., 0., 0.],
+      ...]], dtype=float32),
+        < 2708x2708 sparse matrix of type '<class 'numpy.float64 '>'
+        with 13264 stored elements in Compressed Sparse Row format >]
+
+
+##############  FUNZIONE NEL TRAIN.PY
+# Testing
+test_loss, test_acc = evaluate_preds(preds, [y_test], [idx_test])
+
+
+
+
+
+
+
+##############  Implementation evaluate_preds
+
+def evaluate_preds(preds, labels, indices):
+    split_loss = list()
+    split_acc = list()
+    for y_split, idx_split in zip(labels, indices):
+        split_loss.append(categorical_crossentropy(preds[idx_split], y_split[idx_split]))
+        split_acc.append(accuracy(preds[idx_split], y_split[idx_split]))
+    return split_loss, split_acc
+
+
+
+
+zip
+numberList = [1, 2, 3]
+strList = ['one', 'two', 'three']
+result = zip(numberList, strList)
+result = {(2, 'two'), (1, 'one'), (3, 'three')}
+
+
+
+
+
+##############  FUNZIONI USATE IN evaluate_preds
+
+def categorical_crossentropy(preds, labels):
+  return np.mean(-np.log(np.extract(labels, preds)))
+
+
+
+
+
+
+def accuracy(preds, labels):
+  return np.mean(np.equal(np.argmax(labels, 1), np.argmax(preds, 1)))
+
+
+##############  FUNZIONI BASSO LIVELLO
+
+
+
+
+
+
+  def argmax(a, axis=None, out=None):
+      """
+      Returns the indices of the maximum values along an axis.
+      Examples
+      --------
+      >>> a = np.arange(6).reshape(2,3) + 10
+      >>> a
+      array([[10, 11, 12],
+             [13, 14, 15]])
+      >>> np.argmax(a)
+      5
+      >>> np.argmax(a, axis=0)
+      array([1, 1, 1])
+      >>> np.argmax(a, axis=1)
+      array([2, 2])
+
+      Indexes of the maximal elements of a N-dimensional array:
+
+      >>> ind = np.unravel_index(np.argmax(a, axis=None), a.shape)
+      >>> ind
+      (1, 2)
+      >>> a[ind]
+      15
+
+      >>> b = np.arange(6)
+      >>> b[1] = 5
+      >>> b
+      array([0, 5, 2, 3, 4, 5])
+      >>> np.argmax(b)  # Only the first occurrence is returned.
+      1
+
+      """
+
+
+
+
+
+  Examples : extract
+
+  """
+  Return the elements of an array that satisfy some condition.
+
+  This is equivalent to ``np.compress(ravel(condition), ravel(arr))``.  If
+  `condition` is boolean ``np.extract`` is equivalent to ``arr[condition]``.
+
+  Note that `place` does the exact opposite of `extract`.
+
+  Parameters
+  ----------
+  condition : array_like
+      An array whose nonzero or True entries indicate the elements of `arr`
+      to extract.
+  arr : array_like
+      Input array of the same size as `condition`.
+
+  Returns
+  -------
+  extract : ndarray
+      Rank 1 array of values from `arr` where `condition` is True.
+
+  See Also
+  --------
+  take, put, copyto, compress, place
+
+  Examples
+  --------
+  >>> arr = np.arange(12).reshape((3, 4))
+  >>> arr
+  array([[ 0,  1,  2,  3],
+         [ 4,  5,  6,  7],
+         [ 8,  9, 10, 11]])
+  >>> condition = np.mod(arr, 3)==0
+  >>> condition
+  array([[ True, False, False,  True],
+         [False, False,  True, False],
+         [False,  True, False, False]])
+  >>> np.extract(condition, arr)
+  array([0, 3, 6, 9])
+
+
+  If `condition` is boolean:
+
+  >>> arr[condition]
+  array([0, 3, 6, 9])

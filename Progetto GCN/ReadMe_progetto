@@ -1,0 +1,3 @@
+- Implementare una Cross-validation per trasductive learning utilizzando una percentuale di labelling come misura per il numero di Fold da considerare e facendo lo shuffle dei dati ad ogni iterazione per introdurre un elemento randomico nella selezione.
+
+
