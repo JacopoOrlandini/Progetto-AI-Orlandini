@@ -12,25 +12,34 @@ import networkx as nx
 import time
 
 
-
-def readCoraGraph(nodesPath="data/cora/cora.content", edgesPath="data/cora/cora.cites"):
+def readCoraGraph(dataset_name="cora"):
+    nodesPath = "data/"+dataset_name+"/"+dataset_name + ".content"
+    edgesPath = "data/"+dataset_name+"/"+dataset_name+".cites"
     G = nx.Graph()
     orderedNodesList = []
-    edges = open(edgesPath, "r")
-    nodes = open(nodesPath, "r")
+    try:
+        edges = open(edgesPath, "r")
+        nodes = open(nodesPath, "r")
+    except IOError:
+        print("Check dataset name or dataset location in ./data/[name]/[name].*")
     for n in nodes.readlines():
         nodeID = n.split("\t")[0]
         G.add_node(nodeID)
         orderedNodesList.append(nodeID)
-    # print("INITIAL NODES ARE :"+ str(len(G.nodes())))
     for line in edges.readlines():
         fields = line.split("\t")
         fields[1] = fields[1].rstrip('\n')  #delete \n
         G.add_edge(fields[0], fields[1])
+    #print(G.nodes)
+    #print(G.edges)
+
+    print(G.number_of_nodes())
+    print(G.number_of_edges())
+    #nx.draw(G)
     return G, orderedNodesList
 
 
-def cv_my_shuffle(x, y):
+def cv_my_shuffle(features, labels):
     """
     format new matrix  = X[],Y[], shuffled_index
 
@@ -40,22 +49,26 @@ def cv_my_shuffle(x, y):
     Successivamente vengono recuperate le nuove matrici X e y e gli indici shufflati dei nodi.
     Per quanto riguarda la X che viene restituita non verrà usata all'interno del train.py in quanto devo mantenere le corrispondenze
     con la matrice di adiacenza A che viene calcolata all'inizio con il metodo load_data.
-    :param y: label node, ndarray
-    :param x: feature node, numpy.matrix
+    :param labels: label node, ndarray
+    :param features: feature node, numpy.matrix
     :return: shuffle new concatenate matrix XY
     """
-    concatenation_mat = np.concatenate((x, y), axis=1)
-    index = np.arange(len(y)).reshape((-1, 1))
-    concatenation_mat = np.append(concatenation_mat, index, axis=1)   # index Y before shuffle
-    np.random.shuffle(concatenation_mat)    #row shuffle
-    X = concatenation_mat[:, :1433]
-    y = concatenation_mat[:, 1433:1440]
+    #TODO tipo dentro i vettori sono tutti diversi attualmente
+    index = np.arange(len(labels)).reshape((-1, 1))
+    print(f"Descrizione features: X\n\tdimensione: {features.shape}\n\ttipo data: {features.dtype}")
+    print(f"Descrizione labels: y\n\tdimensione: {labels.shape}\n\ttipo data: {labels.dtype}")
+    print(f"Descrizione indexs: \n\tdimensione: {index.shape}\n\ttipo data: {index.dtype}")
+    concatenation_mat = np.concatenate((features, labels), axis=1)
+    concatenation_mat = np.append(concatenation_mat, index, axis=1)
+    np.random.shuffle(concatenation_mat)
+    shuffle_features = concatenation_mat[:, :features.shape[1]]
+    y = concatenation_mat[:, features.shape[1]: features.shape[1] + labels.shape[1]]
     shuffle_index = concatenation_mat[:, -1]
-    y_shuffled = np.zeros(y.shape, dtype=np.int32)  # build numpy.ndarray
+    shuffle_labels = np.zeros(y.shape, dtype=np.int32)
     for counter, value in enumerate(y):
-        y_shuffled[counter] = value
+        shuffle_labels[counter] = value
     print("\n\nShuffle function... [DONE]")
-    return X, y_shuffled, shuffle_index
+    return shuffle_features, shuffle_labels, shuffle_index
 
 
 def cv_get_slice(y, rate=0.052):
@@ -98,7 +111,7 @@ def cv_get_partition(y, size_fold, index):
     y_train = np.zeros(y.shape, dtype=np.int32)
     y_val = np.zeros(y.shape, dtype=np.int32)
     y_test = np.zeros(y.shape, dtype=np.int32)
-
+    # fill y set
     for i in idx_train:
         y_train[int(index[i])] = y[i]
     for j in idx_val:
@@ -108,8 +121,7 @@ def cv_get_partition(y, size_fold, index):
     mask = np.zeros(y.shape[0])
     for l in idx_train:
         mask[int(index[l])] = 1
-
-    #update indices
+    # update indices
     list_y_tr = []
     list_y_v = []
     list_y_te = []
@@ -121,6 +133,7 @@ def cv_get_partition(y, size_fold, index):
         list_y_te.append(int(index[i]))
     print("\tGet_partition... [DONE]")
     return y_train, y_val, y_test, list_y_tr, list_y_v, list_y_te, np.array(mask, dtype=np.bool)
+
 
 
 # Define parameters
@@ -146,7 +159,7 @@ result = []
 for k in range(K_TOT):
     print("\n\n###  CROSS VALIDATION    k = {} in {} ###".format(k, K_TOT))
     y_train, y_val, y_test, idx_train, idx_val, idx_test, train_mask = cv_get_partition(y_, cv_size, index_)
-    X /= X.sum(1).reshape(-1, 1)
+    X /= X.sum(1).reshape(-1, 1)    #TODO verificare il funzionamento di reshape sulla X
 
     if FILTER == 'localpool':
         """ Local pooling filters (see 'renormalization trick' in Kipf & Welling, arXiv 2016) """
