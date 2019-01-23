@@ -21,7 +21,7 @@ def readCoraGraph(dataset_name="cora"):
         edges = open(edgesPath, "r")
         nodes = open(nodesPath, "r")
     except IOError:
-        print("Check dataset name or dataset location in ./data/[name]/[name].*")
+        print(f"Check dataset name or dataset location in ./data/[{dataset_name}]/[{dataset_name}].*")
     for n in nodes.readlines():
         nodeID = n.split("\t")[0]
         G.add_node(nodeID)
