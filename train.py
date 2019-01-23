@@ -144,8 +144,52 @@ def cv_get_partition(y_shuffle, size_fold, index):
     print("\tGet_partition... [DONE]")
     return y_train, y_val, y_test, new_idx_train, new_idx_val, new_idx_test, np.array(mask, dtype=np.bool)
 
-# Define parameters
 
+def inner_cross_validation_epoch(model, graph):
+    # Helper variables for main training loop
+    wait = 0
+    preds = None
+    best_val_loss = 99999
+    for epoch in range(1, NB_EPOCH + 1):
+        t = time.time()
+
+        # Single training iteration (we mask nodes without labels for loss calculation)
+        model.fit(graph, y_train, sample_weight=train_mask,
+                  batch_size=A.shape[0], epochs=1, shuffle=False, verbose=0)
+
+        # Predict on full dataset
+        preds = model.predict(graph, batch_size=A.shape[0])
+
+        # Train / validation scores
+        train_val_loss, train_val_acc = evaluate_preds(preds, [y_train, y_val],
+                                                       [idx_train, idx_val])
+        print("\tEpoch: {:04d}".format(epoch),
+              "\ttrain_loss= {:.4f}".format(train_val_loss[0]),
+              "\ttrain_acc= {:.4f}".format(train_val_acc[0]),
+              "\tval_loss= {:.4f}".format(train_val_loss[1]),
+              "\tval_acc= {:.4f}".format(train_val_acc[1]),
+              "\ttime= {:.4f}".format(time.time() - t))
+
+        # Early stopping
+        if train_val_loss[1] < best_val_loss:
+            best_val_loss = train_val_loss[1]
+            wait = 0
+        else:
+            if wait >= PATIENCE:
+                print('\tEpoch {}: early stopping'.format(epoch))
+                break
+            wait += 1
+
+
+    # Testing
+    test_loss, test_acc = evaluate_preds(preds, [y_test], [idx_test])
+    print("\nTest set results:",
+          "loss= {:.4f}".format(test_loss[0]),
+          "accuracy= {:.4f}".format(test_acc[0]))
+    return test_loss[0], test_acc[0]
+
+
+# Define parameters
 
 DATASET = 'cora'
 FILTER = 'localpool'  # 'localpool'
@@ -154,10 +198,13 @@ SYM_NORM = True  # symmetric (True) vs. left-only (False) normalization
 PATIENCE = 10  # early stopping patience
 
 # MY MACRO
+
 PATH = "data/"+DATASET+'/'
 RATE = 0.052
 NB_EPOCH = 200
-RUN_TOT = 100
+RUN_TOT = 2
+K_TOT_TMP = 20
+Cycle_inner_Epoch = 10
 
 # Opening file
 ts = time.time()
@@ -182,6 +229,7 @@ for run_id in range(RUN_TOT):
         file.write("label rate: "+ str(RATE) + "\n")
         file.write("size training set: "+ str(cv_size) + "\n")
         file.write("size K_TOT: "+ str(K_TOT) + "\n")
+        file.write("inner loop on fetta: " + str(Cycle_inner_Epoch)+"\n")
         print("Search legend for results (ctrl+f + insert_code)", file=file)
         print("\t - to find specific run [code]: R{run_id} (example R1)", file=file)
         print("\t - to find specific run Epoch list results [code]: R{run_id}E (example R1E)", file=file)
@@ -189,8 +237,9 @@ for run_id in range(RUN_TOT):
         print("\t - to show all run average epochs results: A_all", file=file)
         print("\t - to show average on all run: A_end", file=file)
     file.write("\nCurrent Run: " + str(run_id) + " of " + str(RUN_TOT) + "\n")
-    result = []
-    for k in range(K_TOT):
+    result = []     #sono i risultati delle media su 10 iterazioni per fetta k su cake
+
+    for k in range(K_TOT_TMP):
         print("\n\n###  CROSS VALIDATION    k = {} in {} ###".format(k, K_TOT))
         y_train, y_val, y_test, idx_train, idx_val, idx_test, train_mask = cv_get_partition(y_, cv_size, index_)
         X /= X.sum(1).reshape(-1, 1)
@@ -228,49 +277,16 @@ for run_id in range(RUN_TOT):
         model = Model(inputs=[X_in] + G, outputs=Y)
         model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.01))
 
-        # Helper variables for main training loop
-        wait = 0
-        preds = None
-        best_val_loss = 99999
-
         # Fit
-        for epoch in range(1, NB_EPOCH+1):
-            t = time.time()
-
-            # Single training iteration (we mask nodes without labels for loss calculation)
-            model.fit(graph, y_train, sample_weight=train_mask,
-                      batch_size=A.shape[0], epochs=1, shuffle=False, verbose=0)
-
-            # Predict on full dataset
-            preds = model.predict(graph, batch_size=A.shape[0])
-
-            # Train / validation scores
-            train_val_loss, train_val_acc = evaluate_preds(preds, [y_train, y_val],
-                                                           [idx_train, idx_val])
-            print("\tEpoch: {:04d}".format(epoch),
-                  "\ttrain_loss= {:.4f}".format(train_val_loss[0]),
-                  "\ttrain_acc= {:.4f}".format(train_val_acc[0]),
-                  "\tval_loss= {:.4f}".format(train_val_loss[1]),
-                  "\tval_acc= {:.4f}".format(train_val_acc[1]),
-                  "\ttime= {:.4f}".format(time.time() - t))
-
-            # Early stopping
-            if train_val_loss[1] < best_val_loss:
-                best_val_loss = train_val_loss[1]
-                wait = 0
-            else:
-                if wait >= PATIENCE:
-                    print('\tEpoch {}: early stopping'.format(epoch))
-                    break
-                wait += 1
-
-        # Testing
-        test_loss, test_acc = evaluate_preds(preds, [y_test], [idx_test])
-        print("\nTest set results:",
-              "loss= {:.4f}".format(test_loss[0]),
-              "accuracy= {:.4f}".format(test_acc[0]))
-
-        result.append(test_acc[0])
+        inner_loop_epoch = []
+        inner_loop_epoch_avg = 0
+        for _ in range(Cycle_inner_Epoch):     # ciclo 10 volte per ottenere la media sulla fetta
+            t_loss, t_acc = inner_cross_validation_epoch(model, graph)
+            inner_loop_epoch.append(t_acc)
+        for i in inner_loop_epoch:
+            inner_loop_epoch_avg += i
+        inner_loop_epoch_avg = inner_loop_epoch_avg / len(inner_loop_epoch)
+        result.append(inner_loop_epoch_avg)
 
         # Next slice of K_TOT
         idx_train = range(cv_size)
@@ -281,6 +297,7 @@ for run_id in range(RUN_TOT):
         # Update y and indices for next iteration with new slice of K_TOT
         y_ = y_[next_k]
         index_ = index_[next_k]
+
     avg = 0
     print(f"\tR{run_id}E: \n\t{result}")  #result = all 200 (epochs) test.acc on single run
     print(f"\tR{run_id}E: \n\t{result}", file=file)  # result = all 200 (epochs) test.acc on single run
