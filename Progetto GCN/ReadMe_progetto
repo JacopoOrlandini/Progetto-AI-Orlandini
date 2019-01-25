@@ -1,3 +1,10 @@
 - Implementare una Cross-validation per trasductive learning utilizzando una percentuale di labelling come misura per il numero di Fold da considerare e facendo lo shuffle dei dati ad ogni iterazione per introdurre un elemento randomico nella selezione.
-
+- Implementazione funzione cv_my_shuffle
+- Implementazione funzione cv_get_partiotion
+- Implementazione funzione cv_get_slice
+- Implementazione di 100 Run per cross validation sul dataset
+- Implementazione di media risultati su stessa fetta (inner_cross_validation)
+- Implementazione scrittura su file dei risultati
+- Implementazione versione 3.5 Python
+- Lancio su cluster dello script train_3.5_noEmb.py il giorno 24/1/19: metà mattina
 
