@@ -190,12 +190,12 @@ def inner_cross_validation_epoch(X, G, graph):
         # Train / validation scores
         train_val_loss, train_val_acc = evaluate_preds(preds, [y_train, y_val],
                                                        [idx_train, idx_val])
-        print("\tEpoch: {:04d}".format(epoch),
-              "\ttrain_loss= {:.4f}".format(train_val_loss[0]),
-              "\ttrain_acc= {:.4f}".format(train_val_acc[0]),
-              "\tval_loss= {:.4f}".format(train_val_loss[1]),
-              "\tval_acc= {:.4f}".format(train_val_acc[1]),
-              "\ttime= {:.4f}".format(time.time() - t))
+        # print("\tEpoch: {:04d}".format(epoch),
+        #       "\ttrain_loss= {:.4f}".format(train_val_loss[0]),
+        #       "\ttrain_acc= {:.4f}".format(train_val_acc[0]),
+        #       "\tval_loss= {:.4f}".format(train_val_loss[1]),
+        #       "\tval_acc= {:.4f}".format(train_val_acc[1]),
+        #       "\ttime= {:.4f}".format(time.time() - t))
 
         # Early stopping
         if train_val_loss[1] < best_val_loss:
@@ -230,7 +230,7 @@ RATE = 0.052
 NB_EPOCH = 200
 RUN_TOT = 100
 K_TOT_TMP = 5  # decido manualmente le fette della torta. Puo causare errore controllare i limiti.
-Cycle_inner_Epoch = 10
+Cycle_inner_Epoch = 5
 
 # Opening file
 ts = time.time()
@@ -298,6 +298,7 @@ for run_id in range(RUN_TOT):
         inner_loop_epoch_avg = 0
         # inner loop on slice
         for _ in range(Cycle_inner_Epoch):     # ciclo 10 volte per ottenere la media sulla fetta
+            file.write(str(_))
             t_loss, t_acc = inner_cross_validation_epoch(X, G, graph)
             inner_loop_epoch.append(t_acc)
         for i in inner_loop_epoch:

@@ -161,7 +161,7 @@ def cv_get_partition(y_shuffle, size_fold, index):
 def inner_cross_validation_epoch(X, G, graph):
 
     X_in = Input(shape=(X.shape[1],))
-
+    print(support)
     # Define model architecture
     # NOTE: We pass arguments for graph convolutional layers as a list of tensors.
     # This is somewhat hacky, more elegant options would require rewriting the Layer base class.
@@ -190,12 +190,12 @@ def inner_cross_validation_epoch(X, G, graph):
         # Train / validation scores
         train_val_loss, train_val_acc = evaluate_preds(preds, [y_train, y_val],
                                                        [idx_train, idx_val])
-        print("\tEpoch: {:04d}".format(epoch),
-              "\ttrain_loss= {:.4f}".format(train_val_loss[0]),
-              "\ttrain_acc= {:.4f}".format(train_val_acc[0]),
-              "\tval_loss= {:.4f}".format(train_val_loss[1]),
-              "\tval_acc= {:.4f}".format(train_val_acc[1]),
-              "\ttime= {:.4f}".format(time.time() - t))
+        # print("\tEpoch: {:04d}".format(epoch),
+        #       "\ttrain_loss= {:.4f}".format(train_val_loss[0]),
+        #       "\ttrain_acc= {:.4f}".format(train_val_acc[0]),
+        #       "\tval_loss= {:.4f}".format(train_val_loss[1]),
+        #       "\tval_acc= {:.4f}".format(train_val_acc[1]),
+        #       "\ttime= {:.4f}".format(time.time() - t))
 
         # Early stopping
         if train_val_loss[1] < best_val_loss:
@@ -227,10 +227,10 @@ PATIENCE = 10  # early stopping patience
 
 PATH = "data/"+DATASET+'/'
 RATE = 0.052
-NB_EPOCH = 1
+NB_EPOCH = 200
 RUN_TOT = 1
 K_TOT_TMP = 1  # decido manualmente le fette della torta. Puo causare errore controllare i limiti.
-Cycle_inner_Epoch = 1
+Cycle_inner_Epoch = 10
 
 # Opening file
 ts = time.time()
@@ -268,7 +268,7 @@ for run_id in range(RUN_TOT):
     file.write("\nCurrent Run: " + str(run_id) + " of " + str(RUN_TOT) + "\n")
     result = []     #sono i risultati delle media su 10 iterazioni per fetta k su cake
 
-    for k in range(K_TOT_TMP):
+    for k in range(K_TOT):
         print("\n\n###  CROSS VALIDATION    k = {} in {} ###".format(k, K_TOT))
         y_train, y_val, y_test, idx_train, idx_val, idx_test, train_mask = cv_get_partition(y_, cv_size, index_)
         X /= X.sum(1).reshape(-1, 1)
