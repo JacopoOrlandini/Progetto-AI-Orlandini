@@ -1,4 +1,17 @@
 ﻿import numpy as np
+
+def data_shuffle_fast(labels):
+    '''
+    Attenzione che devo sistemare indici di y nel getPartition. Non ho piu le referenze sulla y_shuffle ma
+    solo sulla y. Quindi devo utilizzare la y[shuffle_index]
+    '''
+    shuffle_index = np.arange(len(labels)).reshape((-1, 1)) 
+    np.random.shuffle(shuffle_index)
+    
+    return shuffle_index
+
+
+
 def data_shuffle(features, labels):
     """
     format new matrix  = X[],Y[], shuffled_index
@@ -27,7 +40,7 @@ def data_shuffle(features, labels):
         shuffle_labels[counter] = value
     print("\n\nShuffle function... [DONE]")
     return shuffle_features, shuffle_labels, shuffle_index
-    
+
 def get_fold_size(y, rate):
     """
     Descrizione metodo: ritorna il numero intero arrotondato della dimensione del set di training del modello.
@@ -35,9 +48,7 @@ def get_fold_size(y, rate):
     :param rate: label rate of graph
     :return: int , size of y_training
     """
-    print("Cross-validation GET K with rate [{}] on {} nodes".format(rate, len(y)))
     fold_size = int(round(len(y)*rate))
-    print("Fold size (training) = {}, label_rate = {}... [DONE]".format(fold_size, rate))
     return fold_size
 
 def get_cross_validation_folds(y,y_shuffle, size_fold, index):
@@ -106,5 +117,56 @@ def get_cross_validation_folds(y,y_shuffle, size_fold, index):
         new_idx_val.append(int(index[i]))
     for i in idx_test:
         new_idx_test.append(int(index[i]))
-    print("\tGet_partition... [DONE]")
+
+    return y_train, y_val, y_test, new_idx_train, new_idx_val, new_idx_test, np.array(mask, dtype=np.bool)
+
+def get_cross_validation_folds_fast(y, size_fold, index):
+    """
+
+    """
+    idx_train = range(size_fold)
+    idx_val = range(size_fold, int(round(len(y)-size_fold)/2))
+    idx_test = range(int(round(len(y)-size_fold)/2), len(y))
+    y_train = np.zeros(y.shape, dtype=np.int32)
+    y_val = np.zeros(y.shape, dtype=np.int32)
+    y_test = np.zeros(y.shape, dtype=np.int32)
+    # fill y set
+    for i in idx_train:
+        '''
+        # Cosa faccio? Y0 = [1:a, 2:b, 3:c, 4:d] --> shuffle --> Y1 = [3:c, 1:a, 4:d, 2:b]
+
+        Mettiamo il caso iniziale :
+            - y_train viene inizializzata a zero
+            - i = 0
+            - index si riferisce agli indici shufflati
+        Quindi:
+            1)index[0] = 3            \
+                                      | ---> da (1) e (2)    --->    y_train[3] = c
+            2)Y1[0] = c               /
+
+        '''
+        y_train[int(index[i])] = y[int(index[i])]
+    for j in idx_val:
+        y_val[int(index[j])] = y[int(index[j])]
+    for k in idx_test:
+        y_test[int(index[k])] = y[int(index[k])]
+    mask = np.zeros(y.shape[0])
+    for l in idx_train:
+        mask[int(index[l])] = 1
+    # update indices
+    new_idx_train = []
+    new_idx_val = []
+    new_idx_test = []
+    for i in idx_train:
+        '''
+        Se training set è composto da 2 elementi, val da 1 e test da 1 allora:
+        new_idx_train = [3, 1]
+        new_idx_val = [4]
+        new_idx_test = [2]
+        '''
+        new_idx_train.append(int(index[i]))     # metto gli indici associati a y_train per valutarli successivamente
+    for i in idx_val:
+        new_idx_val.append(int(index[i]))
+    for i in idx_test:
+        new_idx_test.append(int(index[i]))
     return y_train, y_val, y_test, new_idx_train, new_idx_val, new_idx_test, np.array(mask, dtype=np.bool)
