@@ -1,0 +1,27 @@
+\begin{thebibliography}{1}
+
+\bibitem{ind_BIAS}
+Peter W.~Battaglia et~all.
+\newblock Relational inductive biases, deep learning, and graph networks.
+\newblock {\em arXiv}, 2018.
+
+\bibitem{deep_GCN}
+Rex~Ying et~all.
+\newblock Graph convolutional neural networks for web-scale recommender
+  systems.
+\newblock {\em arXiv}, 6 Jun 2018.
+
+\bibitem{graph}
+Radu Horaud.
+\newblock Graph laplacian.
+
+\bibitem{Kipf_GCN}
+Thomas N. Kipf{,}~Max Welling.
+\newblock Semi-supervised classification with graph convolutional networks.
+\newblock {\em ICLR}, 2017.
+
+\bibitem{agent}
+Wikipedia.
+\newblock Intelligent agent.
+
+\end{thebibliography}
