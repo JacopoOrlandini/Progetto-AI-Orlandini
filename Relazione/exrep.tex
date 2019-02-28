@@ -1,0 +1,37 @@
+\documentclass[11pt]{report}            % Report class in 11 points
+\parindent0pt  \parskip10pt             % make block paragraphs
+\raggedright                            % do not right-justify
+
+\title{\bf An Example of Report Class}  % Supply information
+\author{for \LaTeX\ Class}              %   for the title page.
+\date{\today}                           %   Use current date.
+
+\begin{document}                        % End of preamble, start of text.
+\maketitle                              % Print title page.
+\pagenumbering{roman}                   % roman page number for toc
+\setcounter{page}{2}                    % make it start with "ii"
+\tableofcontents                        % Print table of contents
+
+\chapter{A Main Heading}                % Print a "chapter" heading
+\pagenumbering{arabic}                  % Start text with arabic 1
+Most of this example applies to \texttt{article} and \texttt{book} classes
+as well as to \texttt{report} class. In \texttt{article} class, however,
+the default position for the title information is at the top of
+the first text page rather than on a separate page. Also, it is
+not usual to request a table of contents with \texttt{article} class.
+ 
+\section{A Subheading}                  % Print a "section" heading
+The following sectioning commands are available:
+\begin{quote}                           % The following text will be
+ part \\                                %    set off and indented.
+ chapter \\                             % \\ forces a new line
+ section \\ 
+ subsection \\ 
+ subsubsection \\ 
+ paragraph \\ 
+ subparagraph 
+\end{quote}                             % End of indented text
+But note that---unlike the \texttt{book} and \texttt{report} classes---the
+\texttt{article} class does not have a ``chapter" command.
+ 
+\end{document}                          % The required last line

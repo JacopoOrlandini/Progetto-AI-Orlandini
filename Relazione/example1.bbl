@@ -1,5 +1,10 @@
 \begin{thebibliography}{1}
 
+\bibitem{n2v}
+Leskovec Aditya~Grover.
+\newblock node2vec: Scalable feature learning for networks.
+\newblock {\em arXiv:1607.00653}, 2016.
+
 \bibitem{ind_BIAS}
 Peter W.~Battaglia et~all.
 \newblock Relational inductive biases, deep learning, and graph networks.
@@ -11,14 +16,15 @@ Rex~Ying et~all.
   systems.
 \newblock {\em arXiv}, 6 Jun 2018.
 
-\bibitem{graph}
-Radu Horaud.
-\newblock Graph laplacian.
+\bibitem{Grover:2016:NSF:2939672.2939754}
+Aditya Grover and Jure Leskovec.
+\newblock Node2vec: Scalable feature learning for networks.
+\newblock pages 855--864, 2016.
 
 \bibitem{Kipf_GCN}
-Thomas N. Kipf{,}~Max Welling.
+Thomas~N Kipf and Max Welling.
 \newblock Semi-supervised classification with graph convolutional networks.
-\newblock {\em ICLR}, 2017.
+\newblock {\em arXiv preprint arXiv:1609.02907}, 2016.
 
 \bibitem{agent}
 Wikipedia.

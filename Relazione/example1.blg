@@ -2,50 +2,49 @@ This is BibTeX, Version 0.99d (TeX Live 2017/Debian)
 Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: example1.aux
 The style file: plain.bst
-Database file #1: mybib.bib
+Database file #1: example1.bib
 Warning--entry type for "agent" isn't style-file defined
---line 1 of file mybib.bib
-Warning--empty journal in graph
-Warning--empty year in graph
-You've used 5 entries,
+--line 1 of file example1.bib
+Warning--empty journal in Grover:2016:NSF:2939672.2939754
+You've used 6 entries,
             2118 wiz_defined-function locations,
-            520 strings with 4397 characters,
-and the built_in function-call counts, 1024 in all, are:
-= -- 93
-> -- 35
-< -- 0
-+ -- 15
-- -- 10
-* -- 42
-:= -- 193
-add.period$ -- 13
-call.type$ -- 5
-change.case$ -- 20
+            529 strings with 4756 characters,
+and the built_in function-call counts, 1488 in all, are:
+= -- 145
+> -- 54
+< -- 1
++ -- 22
+- -- 16
+* -- 66
+:= -- 262
+add.period$ -- 17
+call.type$ -- 6
+change.case$ -- 26
 chr.to.int$ -- 0
 cite$ -- 7
-duplicate$ -- 47
-empty$ -- 91
-format.name$ -- 10
-if$ -- 204
+duplicate$ -- 67
+empty$ -- 123
+format.name$ -- 16
+if$ -- 310
 int.to.chr$ -- 0
-int.to.str$ -- 5
-missing$ -- 4
-newline$ -- 26
-num.names$ -- 10
-pop$ -- 28
+int.to.str$ -- 6
+missing$ -- 5
+newline$ -- 32
+num.names$ -- 12
+pop$ -- 32
 preamble$ -- 1
-purify$ -- 15
+purify$ -- 20
 quote$ -- 0
-skip$ -- 37
+skip$ -- 59
 stack$ -- 0
-substring$ -- 25
-swap$ -- 4
-text.length$ -- 0
+substring$ -- 62
+swap$ -- 14
+text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 20
-warning$ -- 2
-while$ -- 10
-width$ -- 6
-write$ -- 46
-(There were 3 warnings)
+type$ -- 24
+warning$ -- 1
+while$ -- 15
+width$ -- 7
+write$ -- 59
+(There were 2 warnings)
