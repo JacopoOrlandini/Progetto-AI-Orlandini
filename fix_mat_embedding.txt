@@ -1,0 +1,11 @@
+dict_embedding = {}
+list_emb = []
+model = gensim.models.Word2Vec.load("coraEmbedding_Dimension_128_lenWalk_20_NumWalk_100_P_0.1_Q_1.model")   
+for nodeid in mapping:
+    result = get_nodeID_emb(nodeid, model)
+    dict_embedding[nodeid] = result
+
+sorted_embeddingMat = sorted(dict_embedding.items(), key=lambda kv: kv[0])
+print(sorted_embeddingMat)
+for i in sorted_embeddingMat:
+    list_emb.append(i[1])
