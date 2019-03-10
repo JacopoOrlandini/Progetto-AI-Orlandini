@@ -12,7 +12,7 @@ from gcn.models import GCN, MLP
 #MY FIX
 from tqdm import tqdm
 averageResult = 0
-runSize = 1
+runSize = 50
 
 # Settings
 flags = tf.app.flags
@@ -115,6 +115,8 @@ for run in tqdm(range(runSize)):
     print("Test set results:", "cost=", "{:.5f}".format(test_cost),
           "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
     averageResult += test_acc
+    sess.close()
+
 
 averageResult /= runSize
 print("Valore finale :"+ str(averageResult))

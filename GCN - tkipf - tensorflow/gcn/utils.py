@@ -65,53 +65,84 @@ def load_data(dataset_str):
         ty_extended[test_idx_range-min(test_idx_range), :] = ty
         ty = ty_extended
 
+        # EDIT : node2vec
+        '''
+        from node2vec import Node2Vec
+        G = nx.Graph()
+        for node in graph:
+            G.add_node(node)
+            for undirected_edge in graph[node]:
+                G.add_edge(node,undirected_edge)
+
+        # Precompute probabilities and generate walks
+        rand_walks = Node2Vec(G, dimensions=20, walk_length=16, num_walks=100)
+
+        # Embed nodes
+        embedded_nodes = rand_walks.fit(window=10, min_count=1)
+
+        # Save embeddings for later use
+        EMBEDDING_FILENAME = "model.wv"
+        embedded_nodes.wv.save_word2vec_format(EMBEDDING_FILENAME)
+
+        # Save model for later use+
+        EMBEDDING_MODEL_FILENAME = "model.n2v"
+        embedded_nodes.save(EMBEDDING_MODEL_FILENAME)
+        '''
+        # END EDIT : node2vec
+
+
+
     features = sp.vstack((allx, tx)).tolil()
     features[test_idx_reorder, :] = features[test_idx_range, :]
+    # EDIT : LOAD MODEL node2vec version_info 3
+    # from gensim.models import Word2Vec
+    #
+    # def minMaxNormalization(X, normalizationAxis=0):
+    #     result = (X - np.min(X, axis=normalizationAxis)) / (
+    #             np.max(X, axis=normalizationAxis) - np.min(X, axis=normalizationAxis))
+    #     return result
+    #
+    # modelnameFile = "model.n2v"  # fail to load model.wv with Word2Vec.load()
+    # modelEmb = Word2Vec.load(modelnameFile)
+    #
+    # from gensim.models import KeyedVectors
+    # word_vectors = KeyedVectors.load(modelnameFile, mmap='r')
+    #
+    # # Node from 0 to 2707 (total 2708)
+    # features = features.todense()
+    # embedding = []
+    #
+    # # Populate numpy matrix
+    # for i in range(0, 2708):
+    #     nodeEmb = word_vectors[str(i)]
+    #     embedding.append(nodeEmb)
+    # matEmbedding = np.matrix(embedding)
+    #
+    # # Normalize embedding matrix and create matEmbedding_
+    # matEmbedding_ = minMaxNormalization(matEmbedding)
+    # features = np.concatenate((features, matEmbedding_), axis=1)
+    # features = sp.csr_matrix(features)
+    # # END EDIT : LOAD MODEL node2vec
+
+
     adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
-
-    # EDIT : node2vec 
-    '''
-    from node2vec import Node2Vec 
-    G = nx.Graph()
-    for node in graph:
-        G.add_node(node)
-        for undirected_edge in graph[node]:
-            G.add_edge(node,undirected_edge)
-    
-    # Precompute probabilities and generate walks
-    rand_walks = Node2Vec(G, dimensions=20, walk_length=16, num_walks=100)
-    
-    # Embed nodes
-    embedded_nodes = rand_walks.fit(window=10, min_count=1)
-    
-    # Save embeddings for later use
-    EMBEDDING_FILENAME = "model.wv"
-    embedded_nodes.wv.save_word2vec_format(EMBEDDING_FILENAME)
-
-    # Save model for later use+
-    EMBEDDING_MODEL_FILENAME = "model.n2v"
-    embedded_nodes.save(EMBEDDING_MODEL_FILENAME)
-    '''
-    # END EDIT : node2vec
-
 
     labels = np.vstack((ally, ty))
     labels[test_idx_reorder, :] = labels[test_idx_range, :]
 
     idx_test = test_idx_range.tolist()
 
-    # HARCODED VERSION
-    # idx_train = range(len(y))   # y: label of training set
-    # idx_val = range(len(y), len(y)+500)
+    # HARCODED VERSION version_info = 0
+    idx_train = range(len(y))   # y: label of training set
+    idx_val = range(len(y), len(y)+500)
     # END HARCODED VERSION
 
-
-    # RANDOM VERSION
-    validationSize = 500    # validation size hardcoded like Yang et al. paper
-    shuffledSupportVector = np.random.permutation(len(y) + validationSize + len(idx_test))
-    idx_train = shuffledSupportVector[:len(y)]
-    idx_val = shuffledSupportVector[len(y):len(y)+validationSize]
-    idx_test = shuffledSupportVector[len(y)+validationSize:len(y)+validationSize+len(idx_test)]
+    # RANDOM VERSION version_info = 1
+    # validationSize = 500    # validation size hardcoded like Yang et al. paper
+    # shuffledSupportVector = np.random.permutation(len(y) + validationSize + len(idx_test))
+    # idx_train = shuffledSupportVector[:len(y)]
+    # idx_val = shuffledSupportVector[len(y):len(y)+validationSize]
+    # idx_test = shuffledSupportVector[len(y)+validationSize:len(y)+validationSize+len(idx_test)] # version_info 2
     #END RANDOM VERSION
 
 
@@ -151,14 +182,14 @@ def sparse_to_tuple(sparse_mx):
 def preprocess_features(features):
     """Row-normalize feature matrix and convert to tuple representation"""
     rowsum = np.array(features.sum(1))
-    # EDITED feature scaling log10
+    # EDITED feature scaling log10 version_info = 2.3
     # np.log10(rowsum)
     r_inv = np.power(rowsum, -1).flatten()
     r_inv[np.isinf(r_inv)] = 0.
     r_mat_inv = sp.diags(r_inv)
     features = r_mat_inv.dot(features)
-    # EDITED
-    # features = features.dot(1.4)    # increase of 20% of BoW elements
+    # EDITED version_info 2.2
+    # features = features.dot(1.4)    # increase of 1.4 of BoW elements
     return sparse_to_tuple(features)
 
 
