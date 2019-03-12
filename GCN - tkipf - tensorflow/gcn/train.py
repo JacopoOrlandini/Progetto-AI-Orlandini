@@ -12,7 +12,7 @@ from gcn.models import GCN, MLP
 #MY FIX
 from tqdm import tqdm
 averageResult = 0
-runSize = 50
+runSize = 10
 
 # Settings
 flags = tf.app.flags
@@ -100,9 +100,9 @@ for run in tqdm(range(runSize)):
         cost_val.append(cost)
 
         # Print results
-        # print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
-        #       "train_acc=", "{:.5f}".format(outs[2]), "val_loss=", "{:.5f}".format(cost),
-        #       "val_acc=", "{:.5f}".format(acc), "time=", "{:.5f}".format(time.time() - t))
+        print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
+              "train_acc=", "{:.5f}".format(outs[2]), "val_loss=", "{:.5f}".format(cost),
+              "val_acc=", "{:.5f}".format(acc), "time=", "{:.5f}".format(time.time() - t))
 
         if epoch > FLAGS.early_stopping and cost_val[-1] > np.mean(cost_val[-(FLAGS.early_stopping+1):-1]):
             print("Early stopping...")

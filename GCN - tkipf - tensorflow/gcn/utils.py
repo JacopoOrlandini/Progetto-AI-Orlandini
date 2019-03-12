@@ -65,63 +65,64 @@ def load_data(dataset_str):
         ty_extended[test_idx_range-min(test_idx_range), :] = ty
         ty = ty_extended
 
-        # EDIT : node2vec
-        '''
-        from node2vec import Node2Vec
-        G = nx.Graph()
-        for node in graph:
-            G.add_node(node)
-            for undirected_edge in graph[node]:
-                G.add_edge(node,undirected_edge)
+    # EDIT : node2vec
+    '''
+    print("-"*20)
+    print("Embedding")
+    print("-"*20)
+    from node2vec import Node2Vec
+    G = nx.Graph()
+    for node in graph:
+        G.add_node(node)
+        for undirected_edge in graph[node]:
+            G.add_edge(node,undirected_edge)
 
-        # Precompute probabilities and generate walks
-        rand_walks = Node2Vec(G, dimensions=20, walk_length=16, num_walks=100)
+    # Precompute probabilities and generate walks
+    rand_walks = Node2Vec(G, dimensions=4, walk_length=10, num_walks=100,p=0.1,q=2, workers=4)
 
-        # Embed nodes
-        embedded_nodes = rand_walks.fit(window=10, min_count=1)
+    # Embed nodes
+    embedded_nodes = rand_walks.fit(window=10, min_count=1)
 
-        # Save embeddings for later use
-        EMBEDDING_FILENAME = "model.wv"
-        embedded_nodes.wv.save_word2vec_format(EMBEDDING_FILENAME)
+    # Save embeddings for later use
+    EMBEDDING_FILENAME = "model_4_10_100_0.1_2.wv"
+    embedded_nodes.wv.save_word2vec_format(EMBEDDING_FILENAME)
 
-        # Save model for later use+
-        EMBEDDING_MODEL_FILENAME = "model.n2v"
-        embedded_nodes.save(EMBEDDING_MODEL_FILENAME)
-        '''
-        # END EDIT : node2vec
-
-
+    # Save model for later use+
+    EMBEDDING_MODEL_FILENAME = "model_4_10_100_0.1_2.n2v"
+    embedded_nodes.save(EMBEDDING_MODEL_FILENAME)
+    exit(1)
+    '''
+    # END EDIT : node2vec
 
     features = sp.vstack((allx, tx)).tolil()
     features[test_idx_reorder, :] = features[test_idx_range, :]
+
     # EDIT : LOAD MODEL node2vec version_info 3
-    # from gensim.models import Word2Vec
-    #
-    # def minMaxNormalization(X, normalizationAxis=0):
-    #     result = (X - np.min(X, axis=normalizationAxis)) / (
-    #             np.max(X, axis=normalizationAxis) - np.min(X, axis=normalizationAxis))
-    #     return result
-    #
-    # modelnameFile = "model.n2v"  # fail to load model.wv with Word2Vec.load()
-    # modelEmb = Word2Vec.load(modelnameFile)
-    #
-    # from gensim.models import KeyedVectors
-    # word_vectors = KeyedVectors.load(modelnameFile, mmap='r')
-    #
-    # # Node from 0 to 2707 (total 2708)
-    # features = features.todense()
-    # embedding = []
-    #
-    # # Populate numpy matrix
-    # for i in range(0, 2708):
-    #     nodeEmb = word_vectors[str(i)]
-    #     embedding.append(nodeEmb)
-    # matEmbedding = np.matrix(embedding)
-    #
-    # # Normalize embedding matrix and create matEmbedding_
-    # matEmbedding_ = minMaxNormalization(matEmbedding)
-    # features = np.concatenate((features, matEmbedding_), axis=1)
-    # features = sp.csr_matrix(features)
+    from gensim.models import Word2Vec
+
+    def minMaxNormalization(X, normalizationAxis=0):
+        result = (X - np.min(X, axis=normalizationAxis)) / (
+                np.max(X, axis=normalizationAxis) - np.min(X, axis=normalizationAxis))
+        return result
+
+    from gensim.models import KeyedVectors
+    word_vectors = KeyedVectors.load("model_4_10_100_0.1_2.n2v", mmap='r')
+
+    # Node from 0 to 2707 (total 2708)
+    features = features.todense()
+    embedding = []
+
+    # Populate numpy matrix
+    for i in range(0, 2708):
+        nodeEmb = word_vectors[str(i)]
+        embedding.append(nodeEmb)
+    matEmbedding = np.matrix(embedding)
+
+    # Normalize embedding matrix and create matEmbedding_
+    matEmbedding_ = minMaxNormalization(matEmbedding)
+    features = np.concatenate((features, matEmbedding_), axis=1)
+    features = sp.csr_matrix(features)
+
     # # END EDIT : LOAD MODEL node2vec
 
 
